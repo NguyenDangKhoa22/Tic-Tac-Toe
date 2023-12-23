@@ -1,47 +1,51 @@
 import { FC, useState } from "react";
 import { Ceil } from "./ceil";
-import { CheckWinner } from "./checkWin";
+import { CheckWin } from "./checkWin";
 type TCeilValue = string | null;
 type TBoard = TCeilValue[];
 interface ITicTacToe {
   size: number;
-  consecutiveCount: number;
+  winLength: number;
 }
-export const TicTactoe: FC<ITicTacToe> = ({ size, consecutiveCount }) => {
+export const TicTactoe: FC<ITicTacToe> = ({ size, winLength }) => {
   const [isXNext, setIsXnext] = useState(true);
   const [board, setBoard] = useState<TBoard>(Array(size * size).fill(null));
   const [history, setHistory] = useState([board]);
   const [currentMove, setCurrentMove] = useState(0);
 
+  const newBoard = [...board];
+  const newHistory = [...history.slice(0, currentMove + 1)];
+  const winner = CheckWin(newBoard, size, winLength);
+
   const handleClick = (index: number) => {
-    const newBoard = [...board];
-
-    const newHistory = [...history.slice(0, currentMove + 1)];
-
-    newHistory.push(newBoard);
+    if (winner) {
+      window.alert(`Player ${winner} wins!`);
+    }
+    if (winner || newBoard[index] !== null) {
+      return;
+    }
+    if (newBoard[index] === null) {
+      newHistory.push(newBoard);
+    }
     setHistory(newHistory);
     setCurrentMove(newHistory.length - 1);
-
-    newBoard[index] = isXNext ? "X" : "O";
     setIsXnext(!isXNext);
     setBoard(newBoard);
-    const winner = CheckWinner(
-      newBoard,
-      size,
-      consecutiveCount,
-      isXNext ? "X" : "O"
-    );
-    if (winner) {
-      console.log(`Người chơi ${isXNext ? "X" : "O"} đã chiến thắng!`);
-      // Xử lý khi có người chiến thắng, có thể hiển thị thông báo hoặc thực hiện hành động khác
-    }
+
+    newBoard[index] = isXNext ? "X" : "O";
   };
   const handleClickHistory = (index: number) => {
     setBoard(history[index]);
     setCurrentMove(index);
   };
+
   return (
-    <div className="h-screen w-screen flex items-center justify-center">
+    <div className="h-screen w-screen flex items-center justify-center flex-col">
+      <div>
+        {winner
+          ? `Người chiến thắng: ${winner}`
+          : `Lượt tiếp theo: ${isXNext ? "X" : "O"}`}
+      </div>
       <div className=""></div>
       <div>
         {new Array(size).fill(null).map((value, row) => {
@@ -52,7 +56,7 @@ export const TicTactoe: FC<ITicTacToe> = ({ size, consecutiveCount }) => {
                   <Ceil
                     key={col}
                     value={board[col * size + row]}
-                    hanleClick={() => handleClick(col * size + row)}
+                    handleClick={() => handleClick(col * size + row)}
                   />
                 );
               })}
@@ -60,10 +64,10 @@ export const TicTactoe: FC<ITicTacToe> = ({ size, consecutiveCount }) => {
           );
         })}
       </div>
-      <div>
+      <div className="max-w-sm overflow-x-auto flex items-center mt-5">
         {history.map((value, index) => (
           <div
-            className="cursor-pointer"
+            className="cursor-pointer h-8 w-10 px-4 text-center bg-orange-300 mr-1 hover:bg-orange-500 rounded-lg py-1"
             key={index}
             onClick={() => handleClickHistory(index)}
           >
