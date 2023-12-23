@@ -1,47 +1,64 @@
-import { useState } from "react";
+import { FC, useState } from "react";
 import { Ceil } from "./ceil";
-
-export const TicTactoe = () => {
+import { CheckWinner } from "./checkWin";
+type TCeilValue = string | null;
+type TBoard = TCeilValue[];
+interface ITicTacToe {
+  size: number;
+  consecutiveCount: number;
+}
+export const TicTactoe: FC<ITicTacToe> = ({ size, consecutiveCount }) => {
   const [isXNext, setIsXnext] = useState(true);
-  const [board, setBoard] = useState(Array(9).fill(null));
+  const [board, setBoard] = useState<TBoard>(Array(size * size).fill(null));
   const [history, setHistory] = useState([board]);
+  const [currentMove, setCurrentMove] = useState(0);
 
   const handleClick = (index: number) => {
     const newBoard = [...board];
 
-    const newHistory = [...history];
-    if (newBoard[index] !== null) {
-      return;
-    }
+    const newHistory = [...history.slice(0, currentMove + 1)];
+
     newHistory.push(newBoard);
     setHistory(newHistory);
+    setCurrentMove(newHistory.length - 1);
 
     newBoard[index] = isXNext ? "X" : "O";
     setIsXnext(!isXNext);
     setBoard(newBoard);
+    const winner = CheckWinner(
+      newBoard,
+      size,
+      consecutiveCount,
+      isXNext ? "X" : "O"
+    );
+    if (winner) {
+      console.log(`Người chơi ${isXNext ? "X" : "O"} đã chiến thắng!`);
+      // Xử lý khi có người chiến thắng, có thể hiển thị thông báo hoặc thực hiện hành động khác
+    }
   };
   const handleClickHistory = (index: number) => {
     setBoard(history[index]);
+    setCurrentMove(index);
   };
-
   return (
     <div className="h-screen w-screen flex items-center justify-center">
+      <div className=""></div>
       <div>
-        <div className="flex">
-          <Ceil value={board[0]} hanleClick={() => handleClick(0)} />
-          <Ceil value={board[1]} hanleClick={() => handleClick(1)} />
-          <Ceil value={board[2]} hanleClick={() => handleClick(2)} />
-        </div>
-        <div className="flex">
-          <Ceil value={board[3]} hanleClick={() => handleClick(3)} />
-          <Ceil value={board[4]} hanleClick={() => handleClick(4)} />
-          <Ceil value={board[5]} hanleClick={() => handleClick(5)} />
-        </div>
-        <div className="flex">
-          <Ceil value={board[6]} hanleClick={() => handleClick(6)} />
-          <Ceil value={board[7]} hanleClick={() => handleClick(7)} />
-          <Ceil value={board[8]} hanleClick={() => handleClick(8)} />
-        </div>
+        {new Array(size).fill(null).map((value, row) => {
+          return (
+            <div className="flex" key={row}>
+              {new Array(size).fill(null).map((index, col) => {
+                return (
+                  <Ceil
+                    key={col}
+                    value={board[col * size + row]}
+                    hanleClick={() => handleClick(col * size + row)}
+                  />
+                );
+              })}
+            </div>
+          );
+        })}
       </div>
       <div>
         {history.map((value, index) => (

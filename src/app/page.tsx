@@ -4,7 +4,7 @@ import { TicTactoe } from "./componet/tictactoe";
 export default function Home() {
   return (
     <div>
-      <TicTactoe />
+      <TicTactoe size={5} consecutiveCount={3} />
     </div>
   );
 }
